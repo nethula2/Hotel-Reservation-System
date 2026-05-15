@@ -1,12 +1,15 @@
 package com.hotelmanagement.system.controller;
 
+import com.hotelmanagement.system.dao.BookingDAO;
 import com.hotelmanagement.system.dao.HotelDAO;
+import com.hotelmanagement.system.model.Booking;
 import com.hotelmanagement.system.model.Hotel;
 import com.hotelmanagement.system.model.User;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
@@ -86,7 +89,33 @@ public class HotelOwnerController {
     }
 
     @GetMapping("/hotelowner/bookings")
-    public String hotelOwnerBookingsPage(){
+    public String hotelOwnerBookingsPage(HttpSession session, Model model) throws SQLException {
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+
+        if (loggedInUserObj == null) {
+            return "redirect:/login";
+        }
+
+        User loggedInUser = (User) loggedInUserObj;
+        BookingDAO dao = new BookingDAO();
+        List<Booking> bookings = dao.getBookingsByOwnerId(loggedInUser.getId());
+
+        model.addAttribute("bookings", bookings);
+
         return "hotelowner-bookings";
+    }
+
+    @GetMapping("/hotelowner/booking/confirm/{id}")
+    public String confirmBooking(@PathVariable int id) throws SQLException {
+        BookingDAO dao = new BookingDAO();
+        dao.updateBookingStatus(id, "CONFIRMED");
+        return "redirect:/hotelowner/bookings";
+    }
+
+    @GetMapping("/hotelowner/booking/reject/{id}")
+    public String rejectBooking(@PathVariable int id) throws SQLException {
+        BookingDAO dao = new BookingDAO();
+        dao.updateBookingStatus(id, "REJECTED");
+        return "redirect:/hotelowner/bookings";
     }
 }
