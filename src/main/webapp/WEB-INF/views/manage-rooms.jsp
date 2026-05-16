@@ -30,12 +30,15 @@
 
         if (rooms == null || rooms.isEmpty()) {
     %>
-        <div class="alert alert-info">
-            No rooms have been added to this hotel yet.
+        <div class="alert alert-info text-center py-5 shadow-sm">
+            <h4 class="alert-heading">No Rooms Found</h4>
+            <p>You haven't added any rooms to this hotel yet.</p>
+            <hr>
+            <p class="mb-0">Click the "Add New Room" button above to get started!</p>
         </div>
     <% } else { %>
         <div class="table-responsive">
-            <table class="table table-bordered table-hover bg-white shadow-sm">
+            <table class="table table-bordered table-hover table-striped align-middle bg-white shadow-sm">
                 <thead class="table-dark">
                     <tr>
                         <th>ID</th>
