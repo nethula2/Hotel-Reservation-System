@@ -2,6 +2,7 @@ package com.hotelmanagement.system.dao;
 
 import com.hotelmanagement.system.model.LuxuryRoom;
 import com.hotelmanagement.system.model.Room;
+import com.hotelmanagement.system.util.DBConnection;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,94 +11,153 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.hotelmanagement.system.util.DBConnection.getConnection;
+// handles all Database operations for Rooms
 
 public class RoomDAO {
 
+    // CREATE - Adding a new room to the database
     public boolean addRoom(Room room) throws SQLException {
-        Connection connection = getConnection();
-        if (connection == null) return false;
+        // Getting connection from our DBConnection utility
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return false;
+        }
 
-        PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO rooms (hotel_id, room_type, price_per_night, capacity, total_rooms, available_rooms, description) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?)"
-        );
-        statement.setInt(1, room.getHotelId());
-        statement.setString(2, room.getRoomType());
-        statement.setDouble(3, room.getPricePerNight());
-        statement.setInt(4, room.getCapacity());
-        statement.setInt(5, room.getTotalRooms());
-        statement.setInt(6, room.getAvailableRooms());
-        statement.setString(7, room.getDescription());
+        // SQL query to insert data
+        String sql = "INSERT INTO rooms (hotel_id, room_type, room_tier, price_per_night, capacity, total_rooms, available_rooms, description) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+        PreparedStatement ps = con.prepareStatement(sql);
+        
+        // Setting values for the query placeholders (?)
+        ps.setInt(1, room.getHotelId());
+        ps.setString(2, room.getRoomType());
+        ps.setString(3, room.getRoomTier());
+        ps.setDouble(4, room.getPricePerNight());
+        ps.setInt(5, room.getCapacity());
+        ps.setInt(6, room.getTotalRooms());
+        ps.setInt(7, room.getAvailableRooms());
+        ps.setString(8, room.getDescription());
 
-        int rows = statement.executeUpdate();
-        connection.close();
-        return rows > 0;
+        int result = ps.executeUpdate();
+        
+        con.close();
+        
+        return result > 0;
     }
 
+    // READ - Getting a list of all rooms for a hotel
     public List<Room> getRoomsByHotelId(int hotelId) throws SQLException {
-        List<Room> rooms = new ArrayList<>();
-        Connection connection = getConnection();
-        if (connection == null) return rooms;
+        List<Room> roomList = new ArrayList<>();
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return roomList;
+        }
 
-        PreparedStatement statement = connection.prepareStatement(
-                "SELECT * FROM rooms WHERE hotel_id = ?"
-        );
-        statement.setInt(1, hotelId);
-        ResultSet rs = statement.executeQuery();
+        String sql = "SELECT * FROM rooms WHERE hotel_id = ?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, hotelId);
+        
+        // Executing the query and getting results
+        ResultSet rs = ps.executeQuery();
 
+        // Looping through the results
         while (rs.next()) {
-            String roomType = rs.getString("room_type");
-            Room room;
+            String type = rs.getString("room_type");
+            Room r;
 
-            if ("SUITE".equals(roomType) || "DELUXE".equals(roomType)) {
-                room = new LuxuryRoom();
+            // Using Inheritance
+            if (type.equals("SUITE") || type.equals("DELUXE")) {
+                r = new LuxuryRoom();
             } else {
-                room = new Room();
+                r = new Room();
             }
 
-            room.setId(rs.getInt("id"));
-            room.setHotelId(rs.getInt("hotel_id"));
-            room.setRoomType(roomType);
-            room.setPricePerNight(rs.getDouble("price_per_night"));
-            room.setCapacity(rs.getInt("capacity"));
-            room.setTotalRooms(rs.getInt("total_rooms"));
-            room.setAvailableRooms(rs.getInt("available_rooms"));
-            room.setDescription(rs.getString("description"));
+            // Setting data to the object
+            r.setId(rs.getInt("id"));
+            r.setHotelId(rs.getInt("hotel_id"));
+            r.setRoomType(type);
+            r.setRoomTier(rs.getString("room_tier"));
+            r.setPricePerNight(rs.getDouble("price_per_night"));
+            r.setCapacity(rs.getInt("capacity"));
+            r.setTotalRooms(rs.getInt("total_rooms"));
+            r.setAvailableRooms(rs.getInt("available_rooms"));
+            r.setDescription(rs.getString("description"));
 
-            rooms.add(room);
+
+            roomList.add(r);
         }
-        connection.close();
-        return rooms;
+        
+        con.close();
+        return roomList;
     }
 
-    public boolean updateRoom(int roomId, double newPrice, int newAvailable) throws SQLException {
-        Connection connection = getConnection();
-        if (connection == null) return false;
+    // READ - Getting a single room by ID
+    public Room getRoomById(int roomId) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) return null;
 
-        PreparedStatement statement = connection.prepareStatement(
-                "UPDATE rooms SET price_per_night = ?, available_rooms = ? WHERE id = ?"
-        );
-        statement.setDouble(1, newPrice);
-        statement.setInt(2, newAvailable);
-        statement.setInt(3, roomId);
+        String sql = "SELECT * FROM rooms WHERE id = ?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, roomId);
+        ResultSet rs = ps.executeQuery();
 
-        int rows = statement.executeUpdate();
-        connection.close();
-        return rows > 0;
+        if (rs.next()) {
+            String type = rs.getString("room_type");
+            Room r;
+            if (type.equals("SUITE") || type.equals("DELUXE")) {
+                r = new LuxuryRoom();
+            } else {
+                r = new Room();
+            }
+            r.setId(rs.getInt("id"));
+            r.setHotelId(rs.getInt("hotel_id"));
+            r.setRoomType(type);
+            r.setRoomTier(rs.getString("room_tier"));
+            r.setPricePerNight(rs.getDouble("price_per_night"));
+            r.setCapacity(rs.getInt("capacity"));
+            r.setTotalRooms(rs.getInt("total_rooms"));
+            r.setAvailableRooms(rs.getInt("available_rooms"));
+            r.setDescription(rs.getString("description"));
+            con.close();
+            return r;
+        }
+        con.close();
+        return null;
     }
 
-    public boolean deleteRoom(int roomId) throws SQLException {
-        Connection connection = getConnection();
-        if (connection == null) return false;
+    // UPDATE -modifying existing room information
+    public boolean updateRoom(int id, double price, int total, int available) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return false;
+        }
 
-        PreparedStatement statement = connection.prepareStatement(
-                "DELETE FROM rooms WHERE id = ?"
-        );
-        statement.setInt(1, roomId);
+        String sql = "UPDATE rooms SET price_per_night = ?, total_rooms = ?, available_rooms = ? WHERE id = ?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setDouble(1, price);
+        ps.setInt(2, total);
+        ps.setInt(3, available);
+        ps.setInt(4, id);
 
-        int rows = statement.executeUpdate();
-        connection.close();
-        return rows > 0;
+        int result = ps.executeUpdate();
+        con.close();
+        
+        return result > 0;
+    }
+
+    // DELETE -removing a room from the system
+    public boolean deleteRoom(int id) throws SQLException {
+        Connection con = DBConnection.getConnection();
+        if (con == null) {
+            return false;
+        }
+
+        String sql = "DELETE FROM rooms WHERE id = ?";
+        PreparedStatement ps = con.prepareStatement(sql);
+        ps.setInt(1, id);
+
+        int result = ps.executeUpdate();
+        con.close();
+        
+        return result > 0;
     }
 }
