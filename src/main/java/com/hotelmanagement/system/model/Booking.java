@@ -12,6 +12,11 @@ public class Booking {
     private int nights;
     private double totalPrice;
     private String status;
+    private int guests;
+    private String nicPassport;
+    private String country;
+    private String specialRequests;
+    private String paymentSlipUrl;
 
     // vars that not in the bookings table
     private String customerName;
@@ -29,6 +34,11 @@ public class Booking {
     public int    getNights()        { return nights; }
     public double getTotalPrice()    { return totalPrice; }
     public String getStatus()        { return status; }
+    public int    getGuests()        { return guests; }
+    public String getNicPassport()   { return nicPassport; }
+    public String getCountry()       { return country; }
+    public String getSpecialRequests() { return specialRequests; }
+    public String getPaymentSlipUrl() { return paymentSlipUrl; }
 
     public String getCustomerName()  { return customerName; }
     public String getHotelName()     { return hotelName; }
@@ -45,6 +55,11 @@ public class Booking {
     public void setNights(int nights)                { this.nights = nights; }
     public void setTotalPrice(double totalPrice)     { this.totalPrice = totalPrice; }
     public void setStatus(String status)             { this.status = status; }
+    public void setGuests(int guests)                { this.guests = guests; }
+    public void setNicPassport(String nicPassport)   { this.nicPassport = nicPassport; }
+    public void setCountry(String country)           { this.country = country; }
+    public void setSpecialRequests(String specialRequests) { this.specialRequests = specialRequests; }
+    public void setPaymentSlipUrl(String paymentSlipUrl) { this.paymentSlipUrl = paymentSlipUrl; }
 
     public void setCustomerName(String customerName) { this.customerName = customerName; }
     public void setHotelName(String hotelName)       { this.hotelName = hotelName; }
