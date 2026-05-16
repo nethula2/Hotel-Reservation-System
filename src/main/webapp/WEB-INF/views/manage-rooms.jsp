@@ -20,7 +20,7 @@
 <div class="container mt-5">
     <div class="d-flex justify-content-between align-items-center mb-4">
         <h2>Manage Rooms</h2>
-        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addRoomModal">+ Add New Room</button>
+        <button class="btn btn-dark" data-bs-toggle="modal" data-bs-target="#addRoomModal">➕ Add New Room</button>
     </div>
 
     <%
@@ -62,10 +62,10 @@
                         </td>
                         <td><%= room.getDescription() %></td>
                         <td>
-                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRoomModal<%= room.getId() %>">Edit</button>
+                            <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editRoomModal<%= room.getId() %>">✏️ Edit</button>
                             
                             <form action="/hotelowner/hotel/<%= hotelId %>/delete-room/<%= room.getId() %>" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this room?');">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑️ Delete</button>
                             </form>
                         </td>
                     </tr>
