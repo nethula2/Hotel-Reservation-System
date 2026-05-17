@@ -1,20 +1,21 @@
 package com.hotelmanagement.system.controller;
 
-import com.hotelmanagement.system.dao.BookingDAO;
 import com.hotelmanagement.system.dao.HotelDAO;
-import com.hotelmanagement.system.model.Booking;
 import com.hotelmanagement.system.model.Hotel;
 import com.hotelmanagement.system.model.User;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.sql.SQLException;
 import java.util.List;
+
+import org.springframework.web.bind.annotation.PathVariable;
+import com.hotelmanagement.system.dao.RoomDAO;
+import com.hotelmanagement.system.model.Room;
 
 @Controller
 public class HotelOwnerController {
@@ -89,33 +90,67 @@ public class HotelOwnerController {
     }
 
     @GetMapping("/hotelowner/bookings")
-    public String hotelOwnerBookingsPage(HttpSession session, Model model) throws SQLException {
-        Object loggedInUserObj = session.getAttribute("loggedUser");
-
-        if (loggedInUserObj == null) {
-            return "redirect:/login";
-        }
-
-        User loggedInUser = (User) loggedInUserObj;
-        BookingDAO dao = new BookingDAO();
-        List<Booking> bookings = dao.getBookingsByOwnerId(loggedInUser.getId());
-
-        model.addAttribute("bookings", bookings);
-
+    public String hotelOwnerBookingsPage(){
         return "hotelowner-bookings";
     }
 
-    @GetMapping("/hotelowner/booking/confirm/{id}")
-    public String confirmBooking(@PathVariable int id) throws SQLException {
-        BookingDAO dao = new BookingDAO();
-        dao.updateBookingStatus(id, "CONFIRMED");
-        return "redirect:/hotelowner/bookings";
+    @GetMapping("/hotelowner/hotel/{id}")
+    public String manageHotelRoomsPage(@PathVariable("id") int hotelId, HttpSession session, Model model) throws SQLException {
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+        if (loggedInUserObj == null) return "redirect:/login";
+
+        User loggedInUser = (User) loggedInUserObj;
+
+        HotelDAO hotelDAO = new HotelDAO();
+        Hotel hotel = hotelDAO.getHotelById(hotelId);
+
+        // Ensure the hotel exists and belongs to this owner
+        if (hotel == null || hotel.getOwnerId() != loggedInUser.getId()) {
+            return "redirect:/hotelowner/hotels";
+        }
+
+        RoomDAO roomDAO = new RoomDAO();
+        List<Room> rooms = roomDAO.getRoomsByHotelId(hotelId);
+
+        model.addAttribute("hotel", hotel);
+        model.addAttribute("rooms", rooms);
+
+        return "hotelowner-hotel";
     }
 
-    @GetMapping("/hotelowner/booking/reject/{id}")
-    public String rejectBooking(@PathVariable int id) throws SQLException {
-        BookingDAO dao = new BookingDAO();
-        dao.updateBookingStatus(id, "REJECTED");
-        return "redirect:/hotelowner/bookings";
+    @PostMapping("/hotelowner/hotel/{id}/add-room")
+    public String addRoom(
+            @PathVariable("id") int hotelId,
+            @RequestParam String roomType,
+            @RequestParam double pricePerNight,
+            @RequestParam int capacity,
+            @RequestParam int totalRooms,
+            @RequestParam String description,
+            HttpSession session
+    ) throws SQLException {
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+        if (loggedInUserObj == null) return "redirect:/login";
+
+        User loggedInUser = (User) loggedInUserObj;
+
+        HotelDAO hotelDAO = new HotelDAO();
+        Hotel hotel = hotelDAO.getHotelById(hotelId);
+
+        // Security check
+        if (hotel != null && hotel.getOwnerId() == loggedInUser.getId()) {
+            Room newRoom = new Room();
+            newRoom.setHotelId(hotelId);
+            newRoom.setRoomType(roomType);
+            newRoom.setPricePerNight(pricePerNight);
+            newRoom.setCapacity(capacity);
+            newRoom.setTotalRooms(totalRooms);
+            newRoom.setAvailableRooms(totalRooms); // Initially available matches total
+            newRoom.setDescription(description);
+
+            RoomDAO roomDAO = new RoomDAO();
+            roomDAO.addRoom(newRoom);
+        }
+
+        return "redirect:/hotelowner/hotel/" + hotelId;
     }
 }

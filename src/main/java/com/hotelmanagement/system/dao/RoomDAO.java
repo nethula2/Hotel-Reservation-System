@@ -57,4 +57,25 @@ public class RoomDAO {
         conn.close();
         return null;
     }
+
+    public boolean addRoom(Room room) throws SQLException {
+        Connection conn = getConnection();
+        if (conn == null) return false;
+
+        PreparedStatement stmt = conn.prepareStatement(
+            "INSERT INTO rooms (hotel_id, room_type, price_per_night, capacity, total_rooms, available_rooms, description) " +
+            "VALUES (?, ?, ?, ?, ?, ?, ?)"
+        );
+        stmt.setInt(1, room.getHotelId());
+        stmt.setString(2, room.getRoomType());
+        stmt.setDouble(3, room.getPricePerNight());
+        stmt.setInt(4, room.getCapacity());
+        stmt.setInt(5, room.getTotalRooms());
+        stmt.setInt(6, room.getAvailableRooms());
+        stmt.setString(7, room.getDescription());
+
+        int rows = stmt.executeUpdate();
+        conn.close();
+        return rows > 0;
+    }
 }
