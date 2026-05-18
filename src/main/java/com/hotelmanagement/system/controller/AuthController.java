@@ -19,6 +19,11 @@ public class AuthController {
 
     private final UserDAO userDAO = new UserDAO();
 
+    @GetMapping("/")
+    public String homePage() {
+        return "index";
+    }
+
     @GetMapping("/login")
     public String showLoginPage() {
         return "login";
