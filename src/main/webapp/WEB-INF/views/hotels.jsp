@@ -35,7 +35,8 @@
                 <div class="card hotel-card shadow-sm">
                     <c:choose>
                         <c:when test="${not empty hotel.imageUrl}">
-                            <img src="${hotel.imageUrl}" class="card-img-top hotel-img" alt="${hotel.name}">
+                            <img src="${hotel.imageUrl}" class="card-img-top hotel-img" alt="${hotel.name}"
+                                 onerror="this.src='https://site-img-res-new.s3.ap-south-1.amazonaws.com/next-site-images/mobileplaceholder.jpg'">
                         </c:when>
                         <c:otherwise>
                             <div class="bg-secondary text-white d-flex align-items-center justify-content-center hotel-img">
@@ -57,7 +58,7 @@
                             ${hotel.description}
                         </p>
                         <div class="d-grid mt-3">
-                            <a href="/reservation?hotelId=${hotel.id}" class="btn btn-primary">Reserve Now</a>
+                            <a href="/hotels/${hotel.id}" class="btn btn-primary">View Rooms</a>
                         </div>
                     </div>
                 </div>

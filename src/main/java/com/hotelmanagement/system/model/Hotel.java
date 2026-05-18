@@ -8,8 +8,12 @@ public class Hotel {
     private String address;
     private String description;
     private int starRating;
-    private String imageUrl;
     private String status;
+    private String imageUrl;
+    private String createdAt;
+
+    // extra field
+    private String ownerName;
 
     public Hotel() {}
 
@@ -21,7 +25,6 @@ public class Hotel {
         this.starRating = starRating;
     }
 
-    // Getters and Setters
     public int getId() { return id; }
     public void setId(int id) { this.id = id; }
 
@@ -48,4 +51,10 @@ public class Hotel {
 
     public String getStatus() { return status; }
     public void setStatus(String status) { this.status = status; }
+
+    public String getCreatedAt() { return createdAt; }
+    public void setCreatedAt(String createdAt) { this.createdAt = createdAt; }
+
+    public String getOwnerName() { return ownerName; }
+    public void setOwnerName(String ownerName) { this.ownerName = ownerName; }
 }

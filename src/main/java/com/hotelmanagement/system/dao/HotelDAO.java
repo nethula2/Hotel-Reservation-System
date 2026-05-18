@@ -21,8 +21,8 @@ public class HotelDAO {
         }
 
         PreparedStatement statement = connection.prepareStatement(
-                "INSERT INTO hotels (owner_id, name, city, address, description, star_rating, status) " +
-                        "VALUES (?, ?, ?, ?, ?, ?, ?)"
+                "INSERT INTO hotels (owner_id, name, city, address, description, star_rating, image_url, status) " +
+                        "VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
         );
 
         statement.setInt(1, hotel.getOwnerId());
@@ -31,7 +31,8 @@ public class HotelDAO {
         statement.setString(4, hotel.getAddress());
         statement.setString(5, hotel.getDescription());
         statement.setInt(6, hotel.getStarRating());
-        statement.setString(7, "PENDING");
+        statement.setString(7, hotel.getImageUrl() != null ? hotel.getImageUrl() : "");
+        statement.setString(8, "PENDING");
 
         int rows = statement.executeUpdate();
 
@@ -62,14 +63,16 @@ public class HotelDAO {
         while (rs.next()){
             Hotel hotel = new Hotel();
 
+            hotel.setId(rs.getInt("id"));
             hotel.setName(rs.getString("name"));
             hotel.setCity(rs.getString("city"));
             hotel.setAddress(rs.getString("address"));
             hotel.setDescription(rs.getString("description"));
             hotel.setStarRating(rs.getInt("star_rating"));
             hotel.setOwnerId(ownerId);
-            hotel.setId(rs.getInt("id"));
             hotel.setStatus(rs.getString("status"));
+            hotel.setImageUrl(rs.getString("image_url"));
+            hotel.setCreatedAt(rs.getString("created_at"));
 
             hotels.add(hotel);
 
@@ -99,14 +102,16 @@ public class HotelDAO {
         while (rs.next()){
             Hotel hotel = new Hotel();
 
+            hotel.setId(rs.getInt("id"));
             hotel.setName(rs.getString("name"));
             hotel.setCity(rs.getString("city"));
             hotel.setAddress(rs.getString("address"));
             hotel.setDescription(rs.getString("description"));
             hotel.setStarRating(rs.getInt("star_rating"));
             hotel.setOwnerId(rs.getInt("owner_id"));
-            hotel.setId(rs.getInt("id"));
             hotel.setStatus(rs.getString("status"));
+            hotel.setImageUrl(rs.getString("image_url"));
+            hotel.setCreatedAt(rs.getString("created_at"));
 
             hotels.add(hotel);
 
@@ -138,18 +143,22 @@ public class HotelDAO {
 
     public Hotel getHotelById(int hotelId) throws SQLException {
         Connection connection = getConnection();
-        if (connection == null) return null;
+
+        if (connection == null) {
+            System.out.println("Connection to Database Failed");
+            return null;
+        }
 
         PreparedStatement statement = connection.prepareStatement(
                 "SELECT * FROM hotels WHERE id = ?"
         );
+
         statement.setInt(1, hotelId);
 
         ResultSet rs = statement.executeQuery();
-        Hotel hotel = null;
 
         if (rs.next()){
-            hotel = new Hotel();
+            Hotel hotel = new Hotel();
             hotel.setId(rs.getInt("id"));
             hotel.setName(rs.getString("name"));
             hotel.setCity(rs.getString("city"));
@@ -158,19 +167,27 @@ public class HotelDAO {
             hotel.setStarRating(rs.getInt("star_rating"));
             hotel.setOwnerId(rs.getInt("owner_id"));
             hotel.setStatus(rs.getString("status"));
+            hotel.setImageUrl(rs.getString("image_url"));
+            hotel.setCreatedAt(rs.getString("created_at"));
+
+            connection.close();
+            return hotel;
         }
+
         connection.close();
-        return hotel;
+        return null;
     }
 
     public List<Hotel> getAllApprovedHotels() throws SQLException {
         List<Hotel> hotels = new ArrayList<>();
-        Connection conn = getConnection();
-        if (conn == null) return hotels;
+        Connection connection = getConnection();
+        if (connection == null) return hotels;
 
-        PreparedStatement stmt = conn.prepareStatement("SELECT * FROM hotels WHERE status = 'APPROVED'");
-        ResultSet rs = stmt.executeQuery();
+        PreparedStatement statement = connection.prepareStatement(
+                "SELECT * FROM hotels WHERE status = 'APPROVED'"
+        );
 
+        ResultSet rs = statement.executeQuery();
         while (rs.next()) {
             Hotel hotel = new Hotel();
             hotel.setId(rs.getInt("id"));
@@ -182,9 +199,35 @@ public class HotelDAO {
             hotel.setOwnerId(rs.getInt("owner_id"));
             hotel.setStatus(rs.getString("status"));
             hotel.setImageUrl(rs.getString("image_url"));
+            hotel.setCreatedAt(rs.getString("created_at"));
+            
             hotels.add(hotel);
         }
-        conn.close();
+
+        connection.close();
         return hotels;
+    }
+
+    public boolean updateHotel(int id, String name, String city, String address,
+                               String description, int starRating, String imageUrl) throws SQLException {
+        Connection connection = getConnection();
+        if (connection == null) return false;
+
+        PreparedStatement statement = connection.prepareStatement(
+                "UPDATE hotels SET name = ?, city = ?, address = ?, description = ?, " +
+                        "star_rating = ?, image_url = ?, status = 'PENDING' WHERE id = ?"
+        );
+
+        statement.setString(1, name);
+        statement.setString(2, city);
+        statement.setString(3, address);
+        statement.setString(4, description);
+        statement.setInt(5, starRating);
+        statement.setString(6, imageUrl);
+        statement.setInt(7, id);
+
+        int rows = statement.executeUpdate();
+        connection.close();
+        return rows > 0;
     }
 }
