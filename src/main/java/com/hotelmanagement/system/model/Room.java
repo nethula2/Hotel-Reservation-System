@@ -1,96 +1,94 @@
 package com.hotelmanagement.system.model;
 
-//parent class for room management
+//creating parent class for room management
 
-public class Room {
-    
-    //implementing variables as private
-    private int id;
-    private int hotelId;
+public abstract class Room {
 
+  //implementing private attributes
+    private int    id;
+    private int    hotelId;
+    private String roomNumber;
+    private int    floor;
     private String roomType;
+    private String roomTier;
     private double pricePerNight;
-    private int capacity;
-    private int totalRooms;
-    private int availableRooms;
-    private String roomTier; // STANDARD or VIP
+    private int    capacity;
+    private String status;
     private String description;
+    private String imageUrl;
+    private String createdAt;
 
+    //extra attribute
+    private String hotelName;
 
     public Room() {}
 
-    //Getters and Setters to access my private variables
-    
-    public int getId() {
-        return id;
-    }
+ //creating abstract method for child classes
+    public abstract String getTierLabel();
 
+//creating getter and setter to access above private variables
+    public int getId() {
+        return id; }
     public void setId(int id) {
-        this.id = id;
-    }
+        this.id = id; }
 
     public int getHotelId() {
-        return hotelId;
-    }
-
+        return hotelId; }
     public void setHotelId(int hotelId) {
-        this.hotelId = hotelId;
-    }
+        this.hotelId = hotelId; }
+
+    public String getRoomNumber() {
+        return roomNumber; }
+    public void setRoomNumber(String roomNumber) {
+        this.roomNumber = roomNumber; }
+
+    public int getFloor() {
+        return floor; }
+    public void setFloor(int floor) {
+        this.floor = floor; }
 
     public String getRoomType() {
-        return roomType;
-    }
-
+        return roomType; }
     public void setRoomType(String roomType) {
-        this.roomType = roomType;
-    }
+        this.roomType = roomType; }
 
     public String getRoomTier() {
-        return roomTier;
-    }
-
+        return roomTier; }
     public void setRoomTier(String roomTier) {
-        this.roomTier = roomTier;
-    }
+        this.roomTier = roomTier; }
 
     public double getPricePerNight() {
-        return pricePerNight;
-    }
-
-    public void setPricePerNight(double pricePerNight) {
-        this.pricePerNight = pricePerNight;
-    }
+        return pricePerNight; }
+    public void setPricePerNight(double price) {
+        this.pricePerNight = price; }
 
     public int getCapacity() {
-        return capacity;
-    }
-
+        return capacity; }
     public void setCapacity(int capacity) {
-        this.capacity = capacity;
-    }
+        this.capacity = capacity; }
 
-    public int getTotalRooms() {
-        return totalRooms;
-    }
-
-    public void setTotalRooms(int totalRooms) {
-        this.totalRooms = totalRooms;
-    }
-
-    public int getAvailableRooms() {
-        return availableRooms;
-    }
-
-    public void setAvailableRooms(int availableRooms) {
-        this.availableRooms = availableRooms;
-    }
-
+    public String getStatus() {
+        return status; }
+    public void setStatus(String status) {
+        this.status = status; }
 
     public String getDescription() {
-        return description;
-    }
+        return description; }
+    public void setDescription(String desc) {
+        this.description = desc; }
 
-    public void setDescription(String description) {
-        this.description = description;
-    }
+    public String getImageUrl() {
+        return imageUrl; }
+    public void setImageUrl(String imageUrl) {
+        this.imageUrl = imageUrl; }
+
+    public String getCreatedAt() {
+        return createdAt; }
+    public void setCreatedAt(String createdAt) {
+        this.createdAt = createdAt; }
+
+    public String getHotelName() {
+        return hotelName; }
+    public void setHotelName(String hotelName) {
+        this.hotelName = hotelName; }
 }
