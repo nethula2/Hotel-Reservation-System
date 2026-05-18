@@ -4,9 +4,9 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 
 public class DBConnection{
-    private static final String URL = "jdbc:mysql://localhost:3306/hotel_reservation";
+    private static final String URL = "jdbc:mysql://127.0.0.1:3307/hotel_reservation";
     private static final String USER = "root";
-    private static final String PASSWORD = "root1234";
+    private static final String PASSWORD = "";
 
     public static Connection getConnection(){
         try

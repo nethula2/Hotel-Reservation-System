@@ -1,174 +1,156 @@
 package com.hotelmanagement.system.controller;
 
-
-import com.hotelmanagement.system.dao.BookingDAO;
 import com.hotelmanagement.system.dao.HotelDAO;
-import com.hotelmanagement.system.dao.RoomDAO;
-import com.hotelmanagement.system.model.Booking;
 import com.hotelmanagement.system.model.Hotel;
-import com.hotelmanagement.system.model.Room;
 import com.hotelmanagement.system.model.User;
-import com.hotelmanagement.system.util.SessionUtils;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PathVariable;
 
 import java.sql.SQLException;
 import java.util.List;
 
+import org.springframework.web.bind.annotation.PathVariable;
+import com.hotelmanagement.system.dao.RoomDAO;
+import com.hotelmanagement.system.model.Room;
+
 @Controller
 public class HotelOwnerController {
-
-    // GET — dashboard
     @GetMapping("/hotelowner/home")
-    public String hotelOwnerHomePage(HttpSession session) {
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+    public String hotelOwnerHomePage(HttpSession session){
+        Object loggedInUser = session.getAttribute("loggedUser");
+
+        if (loggedInUser == null) { return "redirect:/login"; }
+
         return "hotelowner-home";
     }
 
-    // GET — my hotels list
     @GetMapping("/hotelowner/hotels")
     public String hotelOwnerHotelsPage(HttpSession session, Model model) throws SQLException {
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+        Object loggedInUserObj = session.getAttribute("loggedUser");
 
-        User owner = SessionUtils.getLoggedInUser(session);
+        if (loggedInUserObj == null) {
+            return "redirect:/login";
+        }
+
+        User loggedInUser = (User) loggedInUserObj;
+
         HotelDAO dao = new HotelDAO();
-        List<Hotel> hotels = dao.getHotelsByOwnerId(owner.getId());
+        List<Hotel> hotels = dao.getHotelsByOwnerId(loggedInUser.getId());
+
         model.addAttribute("hotels", hotels);
+
         return "hotelowner-hotels";
     }
 
-    // GET — add hotel form
     @GetMapping("/hotelowner/add-hotel")
-    public String hotelOwnerAddHotelPage(HttpSession session) {
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+    public String hotelOwnerAddHotelPage(HttpSession session){
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+
+        if (loggedInUserObj == null) {
+            return "redirect:/login";
+        }
         return "hotelowner-add-hotel";
     }
 
-    // POST — submit new hotel
     @PostMapping("/hotelowner/add-hotel")
-    public String addHotel(
+    public String addHotelPage(
             HttpSession session,
             @RequestParam String name,
             @RequestParam String city,
             @RequestParam String address,
             @RequestParam String description,
             @RequestParam int starRating,
-            @RequestParam(required = false) String imageUrl,
-            Model model) throws SQLException {
+            Model model
+    ) throws SQLException {
 
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+        Object loggedInUserObj = session.getAttribute("loggedUser");
 
-        User owner = SessionUtils.getLoggedInUser(session);
+        if (loggedInUserObj == null) {
+            return "redirect:/login";
+        }
+
+        User loggedInUser = (User) loggedInUserObj;
 
         Hotel newHotel = new Hotel(name, city, address, description, starRating);
-        newHotel.setOwnerId(owner.getId());
-        newHotel.setImageUrl(imageUrl);
+        newHotel.setOwnerId(loggedInUser.getId());
 
         HotelDAO dao = new HotelDAO();
-        boolean success = dao.addHotel(newHotel);
 
-        if (success) return "redirect:/hotelowner/hotels";
+        boolean state = dao.addHotel(newHotel);
+        if (state) { return "redirect:/hotelowner/home";}
 
-        model.addAttribute("error", "Failed to add hotel. Please try again.");
-        return "hotelowner-add-hotel";
+        else {
+            model.addAttribute("error", "Registration Failed");
+            return "hotelowner-add-hotel";
+        }
     }
 
-    // GET — view booking requests
     @GetMapping("/hotelowner/bookings")
-    public String viewBookingRequests(HttpSession session, Model model) throws SQLException {
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
-
-        User owner = SessionUtils.getLoggedInUser(session);
-        BookingDAO bookingDAO = new BookingDAO();
-        List<Booking> bookings = bookingDAO.getBookingsByOwnerId(owner.getId());
-        model.addAttribute("bookings", bookings);
+    public String hotelOwnerBookingsPage(){
         return "hotelowner-bookings";
     }
 
-    // GET — confirm booking
-    @GetMapping("/hotelowner/booking/confirm/{id}")
-    public String confirmBooking(
-            @PathVariable int id,
-            HttpSession session) throws SQLException {
+    @GetMapping("/hotelowner/hotel/{id}")
+    public String manageHotelRoomsPage(@PathVariable("id") int hotelId, HttpSession session, Model model) throws SQLException {
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+        if (loggedInUserObj == null) return "redirect:/login";
 
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+        User loggedInUser = (User) loggedInUserObj;
 
-        BookingDAO bookingDAO = new BookingDAO();
-        Booking booking = bookingDAO.getBookingById(id);
+        HotelDAO hotelDAO = new HotelDAO();
+        Hotel hotel = hotelDAO.getHotelById(hotelId);
 
-        if (booking != null) {
-            bookingDAO.updateBookingStatus(id, "CONFIRMED");
+        // Ensure the hotel exists and belongs to this owner
+        if (hotel == null || hotel.getOwnerId() != loggedInUser.getId()) {
+            return "redirect:/hotelowner/hotels";
         }
 
-        return "redirect:/hotelowner/bookings";
-    }
+        RoomDAO roomDAO = new RoomDAO();
+        List<Room> rooms = roomDAO.getRoomsByHotelId(hotelId);
 
-    // GET — reject booking
-    @GetMapping("/hotelowner/booking/reject/{id}")
-    public String rejectBooking(
-            @PathVariable int id,
-            HttpSession session) throws SQLException {
-
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
-
-        BookingDAO bookingDAO = new BookingDAO();
-        bookingDAO.updateBookingStatus(id, "REJECTED");
-
-        return "redirect:/hotelowner/bookings";
-    }
-
-    // GET — edit hotel form
-    @GetMapping("/hotelowner/edit-hotel/{id}")
-    public String editHotelPage(
-            @PathVariable int id,
-            HttpSession session,
-            Model model) throws SQLException {
-
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
-
-        HotelDAO hotelDAO = new HotelDAO();
-        Hotel hotel = hotelDAO.getHotelById(id);
         model.addAttribute("hotel", hotel);
-        return "hotelowner-edit-hotel";
+        model.addAttribute("rooms", rooms);
+
+        return "hotelowner-hotel";
     }
 
-    // POST — save hotel edits
-    @PostMapping("/hotelowner/edit-hotel/{id}")
-    public String updateHotel(
-            @PathVariable int id,
-            @RequestParam String name,
-            @RequestParam String city,
-            @RequestParam String address,
+    @PostMapping("/hotelowner/hotel/{id}/add-room")
+    public String addRoom(
+            @PathVariable("id") int hotelId,
+            @RequestParam String roomType,
+            @RequestParam double pricePerNight,
+            @RequestParam int capacity,
+            @RequestParam int totalRooms,
             @RequestParam String description,
-            @RequestParam int starRating,
-            @RequestParam(required = false) String imageUrl,
-            HttpSession session,
-            Model model) throws SQLException {
+            HttpSession session
+    ) throws SQLException {
+        Object loggedInUserObj = session.getAttribute("loggedUser");
+        if (loggedInUserObj == null) return "redirect:/login";
 
-        if (!SessionUtils.isLoggedIn(session)) return "redirect:/login";
-        if (!SessionUtils.hasRole(session, "HOTEL_OWNER")) return "redirect:/login";
+        User loggedInUser = (User) loggedInUserObj;
 
         HotelDAO hotelDAO = new HotelDAO();
-        boolean success = hotelDAO.updateHotel(id, name, city, address, description, starRating, imageUrl);
+        Hotel hotel = hotelDAO.getHotelById(hotelId);
 
-        if (success) return "redirect:/hotelowner/hotels";
+        // Security check
+        if (hotel != null && hotel.getOwnerId() == loggedInUser.getId()) {
+            Room newRoom = new Room();
+            newRoom.setHotelId(hotelId);
+            newRoom.setRoomType(roomType);
+            newRoom.setPricePerNight(pricePerNight);
+            newRoom.setCapacity(capacity);
+            newRoom.setTotalRooms(totalRooms);
+            newRoom.setAvailableRooms(totalRooms); // Initially available matches total
+            newRoom.setDescription(description);
 
-        model.addAttribute("error", "Update failed. Please try again.");
-        Hotel hotel = hotelDAO.getHotelById(id);
-        model.addAttribute("hotel", hotel);
-        return "hotelowner-edit-hotel";
+            RoomDAO roomDAO = new RoomDAO();
+            roomDAO.addRoom(newRoom);
+        }
+
+        return "redirect:/hotelowner/hotel/" + hotelId;
     }
 }

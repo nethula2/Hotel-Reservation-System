@@ -1,6 +1,3 @@
-<%@ page contentType="text/html;charset=UTF-8" %>
-<%@ page import="java.util.List" %>
-<%@ page import="com.hotelmanagement.system.model.Booking" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -22,8 +19,8 @@
     <h2 class="mb-4">Booking Requests</h2>
 
     <%
-        List<Booking> bookings =
-            (List<Booking>) request.getAttribute("bookings");
+        java.util.List<com.hotelmanagement.system.model.Booking> bookings =
+            (java.util.List<com.hotelmanagement.system.model.Booking>) request.getAttribute("bookings");
 
         if (bookings == null || bookings.isEmpty()) {
     %>
@@ -33,56 +30,41 @@
             <table class="table table-bordered table-hover bg-white shadow-sm">
                 <thead class="table-dark">
                     <tr>
-                        <th>ID</th>
+                        <th>Booking ID</th>
                         <th>Customer</th>
                         <th>Hotel</th>
                         <th>Room Type</th>
                         <th>Check In</th>
                         <th>Check Out</th>
-                        <th>Nights</th>
                         <th>Total</th>
-                        <th>Payment Slip</th>
                         <th>Status</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>
-                <% for (Booking b : bookings) {
-                    String statusBadge = "bg-warning text-dark";
-                    if ("CONFIRMED".equals(b.getStatus())) statusBadge = "bg-success";
-                    if ("REJECTED".equals(b.getStatus()))  statusBadge = "bg-danger";
-                    if ("CANCELLED".equals(b.getStatus())) statusBadge = "bg-secondary";
-                %>
+                <% for (com.hotelmanagement.system.model.Booking booking : bookings) { %>
                     <tr>
-                        <td>#<%= b.getId() %></td>
-                        <td><%= b.getCustomerName() %></td>
-                        <td><%= b.getHotelName() %></td>
-                        <td><%= b.getRoomType() %></td>
-                        <td><%= b.getCheckIn() %></td>
-                        <td><%= b.getCheckOut() %></td>
-                        <td><%= b.getNights() %></td>
-                        <td>Rs. <%= b.getTotalPrice() %></td>
+                        <td>#<%= booking.getId() %></td>
+                        <td><%= booking.getCustomerName() %></td>
+                        <td><%= booking.getHotelName() %></td>
+                        <td><%= booking.getRoomType() %></td>
+                        <td><%= booking.getCheckIn() %></td>
+                        <td><%= booking.getCheckOut() %></td>
+                        <td>$<%= booking.getTotalPrice() %></td>
                         <td>
-                            <% if (b.getPaymentSlipUrl() != null) { %>
-                                <a href="/<%= b.getPaymentSlipUrl() %>"
-                                   target="_blank"
-                                   class="btn btn-sm btn-info">
-                                    View Slip
-                                </a>
+                            <% if (booking.getStatus().equals("PENDING")) { %>
+                                <span class="badge bg-warning text-dark">Pending</span>
+                            <% } else if (booking.getStatus().equals("CONFIRMED")) { %>
+                                <span class="badge bg-success">Confirmed</span>
                             <% } else { %>
-                                <span class="text-muted">None</span>
+                                <span class="badge bg-danger">Rejected</span>
                             <% } %>
                         </td>
                         <td>
-                            <span class="badge <%= statusBadge %>">
-                                <%= b.getStatus() %>
-                            </span>
-                        </td>
-                        <td>
-                            <% if ("PENDING".equals(b.getStatus())) { %>
-                                <a href="/hotelowner/booking/confirm/<%= b.getId() %>"
+                            <% if (booking.getStatus().equals("PENDING")) { %>
+                                <a href="/hotelowner/booking/confirm/<%= booking.getId() %>"
                                    class="btn btn-sm btn-success me-1">Confirm</a>
-                                <a href="/hotelowner/booking/reject/<%= b.getId() %>"
+                                <a href="/hotelowner/booking/reject/<%= booking.getId() %>"
                                    class="btn btn-sm btn-danger">Reject</a>
                             <% } else { %>
                                 <span class="text-muted">No actions</span>
@@ -96,6 +78,5 @@
     <% } %>
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
 </html>
