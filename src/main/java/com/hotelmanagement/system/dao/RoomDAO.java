@@ -111,7 +111,7 @@ public class RoomDAO {
         return roomList;
     }
 
-//UPDATE—modifing room details
+//UPDATE—modifying room details
     public boolean updateRoom(int id, double price, String status, String description) throws SQLException {
         Connection con = getConnection();
         if (con == null) return false;
