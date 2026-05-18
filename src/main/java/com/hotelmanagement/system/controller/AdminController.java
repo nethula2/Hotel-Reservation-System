@@ -1,6 +1,6 @@
 package com.hotelmanagement.system.controller;
 
-import com.hotelmanagement.system.dao.CustomerDAO;
+
 import com.hotelmanagement.system.dao.HotelDAO;
 import com.hotelmanagement.system.dao.UserManagementDAO;
 import com.hotelmanagement.system.model.Customer;
