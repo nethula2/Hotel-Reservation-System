@@ -22,27 +22,31 @@ CREATE TABLE hotels (
                         address      VARCHAR(255)  NOT NULL,
                         description  TEXT,
                         star_rating  INT           CHECK (star_rating BETWEEN 1 AND 5),
-                        image_url    VARCHAR(500),
+                        image_url   VARCHAR(500)  DEFAULT 'https://site-img-res-new.s3.ap-south-1.amazonaws.com/next-site-images/mobileplaceholder.jpg',
                         status       ENUM('PENDING', 'APPROVED', 'REJECTED') DEFAULT 'PENDING',
                         created_at   TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
                         FOREIGN KEY (owner_id) REFERENCES users(id) ON DELETE CASCADE
 );
 
--- ROOMS > store room info and type
+-- ROOMS > store room info and type (updated)
 CREATE TABLE rooms (
                        id              INT AUTO_INCREMENT PRIMARY KEY,
-                       hotel_id        INT            NOT NULL,
+                       hotel_id        INT           NOT NULL,
+                       room_number     VARCHAR(20)   NOT NULL,
+                       floor           INT           DEFAULT 1,
                        room_type       ENUM('SINGLE', 'DOUBLE', 'SUITE', 'DELUXE') NOT NULL,
-                       price_per_night DECIMAL(10, 2) NOT NULL,
-                       capacity        INT            NOT NULL DEFAULT 1,
-                       total_rooms     INT            NOT NULL DEFAULT 1,
-                       available_rooms INT            NOT NULL DEFAULT 1,
+                       room_tier       ENUM('STANDARD', 'GOLD', 'VIP') DEFAULT 'STANDARD',
+                       price_per_night DECIMAL(10,2) NOT NULL,
+                       capacity        INT           NOT NULL DEFAULT 1,
+                       status          ENUM('AVAILABLE', 'OCCUPIED', 'MAINTENANCE') DEFAULT 'AVAILABLE',
                        description     TEXT,
-                       created_at      TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
-                       FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE
+                       image_url       VARCHAR(500)  DEFAULT 'https://www.pngkey.com/png/detail/470-4703342_generic-placeholder-image-conference-room-free-icon.png',
+                       created_at      TIMESTAMP     DEFAULT CURRENT_TIMESTAMP,
+                       FOREIGN KEY (hotel_id) REFERENCES hotels(id) ON DELETE CASCADE,
+                       UNIQUE KEY unique_room (hotel_id, room_number)
 );
 
--- BOOKINGS > used to keep track on bookings
+-- BOOKINGS > used to keep track on bookings (updated - removed guest column)
 CREATE TABLE bookings (
                           id            INT AUTO_INCREMENT PRIMARY KEY,
                           customer_id   INT            NOT NULL,
@@ -52,28 +56,18 @@ CREATE TABLE bookings (
                           check_out     DATE           NOT NULL,
                           nights        INT            NOT NULL,
                           total_price   DECIMAL(10, 2) NOT NULL,
-                          guests        INT            NOT NULL DEFAULT 1,
-                          status        ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED') DEFAULT 'PENDING',
-                          created_at    TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+                          status           ENUM('PENDING', 'CONFIRMED', 'CANCELLED', 'REJECTED') DEFAULT 'PENDING',
+                          created_at       TIMESTAMP      DEFAULT CURRENT_TIMESTAMP,
+                          nic_passport     VARCHAR(100),
+                          country          VARCHAR(100),
+                          special_requests TEXT,
+                          payment_slip_url VARCHAR(500),
                           FOREIGN KEY (customer_id) REFERENCES users(id) ON DELETE CASCADE,
                           FOREIGN KEY (hotel_id)    REFERENCES hotels(id) ON DELETE CASCADE,
                           FOREIGN KEY (room_id)     REFERENCES rooms(id)  ON DELETE CASCADE
 );
 
--- REVIEWS
-CREATE TABLE reviews (
-                         id          INT AUTO_INCREMENT PRIMARY KEY,
-                         customer_id INT  NOT NULL,
-                         hotel_id    INT  NOT NULL,
-                         booking_id  INT  NOT NULL,
-                         rating      INT  NOT NULL CHECK (rating BETWEEN 1 AND 5),
-                         comment     TEXT,
-                         created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                         FOREIGN KEY (customer_id) REFERENCES users(id)     ON DELETE CASCADE,
-                         FOREIGN KEY (hotel_id)    REFERENCES hotels(id)    ON DELETE CASCADE,
-                         FOREIGN KEY (booking_id)  REFERENCES bookings(id)  ON DELETE CASCADE
-);
 
 -- SEED DATA — default admin account
 INSERT IGNORE INTO users (name, email, password, role)
-VALUES ('Big Dawg', 'admin@hotel.com', 'admin123', 'ADMIN');
+VALUES ('Admin - DK', 'admin@hotel.com', 'admin123', 'ADMIN');
