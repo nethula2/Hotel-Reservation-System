@@ -1,29 +1,24 @@
 package com.hotelmanagement.system.model;
 
-//inheriting all properties and methods from  Room class
+// inheriting all properties from room class
 public class LuxuryRoom extends Room {
-    
-    // new pro
     private boolean hasPremiumService;
-
 
     public LuxuryRoom() {
         super();
         this.hasPremiumService = true;
     }
 
+    @Override
+    public String getTierLabel() {
+        return "Luxury";
+    }
 
+//new attribute
     public boolean isHasPremiumService() {
         return hasPremiumService;
     }
-
-    public void setHasPremiumService(boolean hasPremiumService) {
-        this.hasPremiumService = hasPremiumService;
-    }
-
-    //Changing the behavior of the toString method from the Object class
-    @Override
-    public String toString() {
-        return "This is a Luxury Room of type: " + getRoomType();
+    public void setHasPremiumService(boolean value) {
+        this.hasPremiumService = value;
     }
 }
